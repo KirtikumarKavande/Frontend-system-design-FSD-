@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Three-Level Modal with Enter Key Support</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      width: 400px;
+      padding: 20px;
+      z-index: 1000;
+    }
+    .modal.active {
+      display: block;
+    }
+    .menu {
+      list-style: none;
+      padding: 0;
+    }
+    .menu-item {
+      cursor: pointer;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .menu-item:hover,
+    .menu-item:focus {
+      background-color: #f0f0f0;
+      outline: none;
+    }
+    .back-button {
+      display: block;
+      margin-bottom: 10px;
+      cursor: pointer;
+      color: blue;
+    }
+    .back-button:hover,
+    .back-button:focus {
+      text-decoration: underline;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+    <div>see modal</div>
+  <button id="openModal">Open Modal</button>
+
+  <!-- Main Modal -->
+  <div id="modal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+    <a class="back-button" id="level1Back" tabindex="0">← Back</a>
+    <h2 id="modalTitle">Level 1: Main Menu</h2>
+    <ul class="menu" id="level1Menu">
+      <li class="menu-item" tabindex="0">Menu 1</li>
+      <li class="menu-item" tabindex="0">Menu 2</li>
+      <li class="menu-item" tabindex="0">Menu 3</li>
+    </ul>
+
+    <!-- Level 2 -->
+    <div id="level2" class="modal" aria-labelledby="level2Title" aria-hidden="true">
+      <a class="back-button" tabindex="0">← Back</a>
+      <h2 id="level2Title">Level 2: Submenu</h2>
+      <ul class="menu">
+        <li class="menu-item" tabindex="0">Submenu 1</li>
+        <li class="menu-item" tabindex="0">Submenu 2</li>
+        <li class="menu-item" tabindex="0">Submenu 3</li>
+      </ul>
+    </div>
+
+    <!-- Level 3 -->
+    <div id="level3" class="modal" aria-labelledby="level3Title" aria-hidden="true">
+      <a class="back-button" tabindex="0">← Back</a>
+      <h2 id="level3Title">Level 3: Description</h2>
+      <p>Here is the description for the selected item.</p>
+    </div>
+  </div>
+
+  <script>
+    const openModalBtn = document.getElementById('openModal');
+    const modal = document.getElementById('modal');
+    const level1Menu = document.getElementById('level1Menu');
+    const level2 = document.getElementById('level2');
+    const level3 = document.getElementById('level3');
+    const level1Back = document.getElementById('level1Back');
+    const backButtons = document.querySelectorAll('.back-button');
+
+    // Open the main modal
+    openModalBtn.addEventListener('click', () => {
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+      level1Back.focus();
+    });
+
+    // Handle menu navigation with mouse click or Enter key
+    function handleMenuInteraction(menu, nextLevel) {
+      menu.addEventListener('click', (event) => {
+        if (event.target.classList.contains('menu-item')) {
+          openNextLevel(nextLevel);
+        }
+      });
+
+      menu.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter' && document.activeElement.classList.contains('menu-item')) {
+          openNextLevel(nextLevel);
+        }
+      });
+    }
+
+    function openNextLevel(nextLevel) {
+      nextLevel.classList.add('active');
+      modal.querySelectorAll('.menu, .back-button').forEach((el) => el.setAttribute('aria-hidden', 'true'));
+      nextLevel.querySelector('.menu-item, .back-button').focus();
+    }
+
+    // Back button logic
+    backButtons.forEach((backButton) => {
+      backButton.addEventListener('click', () => handleBackButton(backButton));
+      backButton.addEventListener('keypress', (event) => {
+        console.log(event.key);
+        if (event.key === 'Enter') handleBackButton(backButton);
+      });
+    });
+
+    function handleBackButton(backButton) {
+      const currentLevel = backButton.parentElement;
+      currentLevel.classList.remove('active');
+      currentLevel.setAttribute('aria-hidden', 'true');
+      if (currentLevel === level2) {
+        level1Menu.setAttribute('aria-hidden', 'false');
+        level1Menu.querySelector('.menu-item').focus();
+      } else if (currentLevel === level3) {
+        level2.setAttribute('aria-hidden', 'false');
+        level2.querySelector('.menu-item').focus();
+      } else if (currentLevel === modal) {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        openModalBtn.focus();
+      }
+    }
+
+    // Close modal on Escape
+    document.addEventListener('keypress', (event) => {
+      if (event.key === 'Escape' && modal.classList.contains('active')) {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        openModalBtn.focus();
+      }
+    });
+
+    // Attach event handlers for menus
+    handleMenuInteraction(level1Menu, level2);
+    handleMenuInteraction(level2.querySelector('.menu'), level3);
+    
+
+  </script>
+</body>
+</html>
